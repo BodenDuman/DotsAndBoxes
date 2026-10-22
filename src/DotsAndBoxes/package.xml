@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>DotsAndBoxes</name>
+  <version>0.0.0</version>
+  <description>The DotsAndBoxes package</description>
+
+  <maintainer email="project26-group6@todo.todo">project26-group6</maintainer>
+  <license>TODO</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>dots_and_boxes</build_depend>
+  <build_export_depend>dots_and_boxes</build_export_depend>
+  <exec_depend>dots_and_boxes</exec_depend>
+</package>

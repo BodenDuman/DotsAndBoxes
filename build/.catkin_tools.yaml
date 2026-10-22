@@ -1,0 +1,6 @@
+devel_space: /home/project26-group6/ros/devel
+install: false
+install_space: /home/project26-group6/ros/install
+profile: default
+source_space: /home/project26-group6/ros/src
+workspace: /home/project26-group6/ros
