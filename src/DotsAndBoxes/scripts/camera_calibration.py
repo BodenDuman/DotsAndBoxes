@@ -38,9 +38,25 @@ with open("/tmp/ost.yaml") as f:
 K    = np.array(data["camera_matrix"]["data"]).reshape(3, 3)
 dist = np.array(data["distortion_coefficients"]["data"])
 
-np.save(os.path.join(CONFIG_DIR, "camera_matrix.npy"), K)
-np.save(os.path.join(CONFIG_DIR, "dist_coeffs.npy"), dist)
+calibration = {
+    "camera_matrix": {
+        "rows": 3,
+        "cols": 3,
+        "data": K.flatten().tolist()
+    },
+    "distortion_coefficients": {
+        "rows": 1,
+        "cols": 5,
+        "data": dist.tolist()
+    },
+    "image_width":  1280,
+    "image_height": 720,
+}
 
-print("Saved to", CONFIG_DIR)
+output_path = os.path.join(CONFIG_DIR, "camera_calibration.yaml")
+with open(output_path, "w") as f:
+    yaml.dump(calibration, f, default_flow_style=False)
+
+print("Saved to", output_path)
 print("K =\n", K)
 print("dist =", dist)
