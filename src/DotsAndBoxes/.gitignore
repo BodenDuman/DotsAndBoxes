@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Captured frames (temporary test images)
+frame*.jpg
+*.npy
+
+# ROS build artifacts (these live outside this package, but just in case)
+build/
+devel/
+logs/
+.catkin_tools/
+
+# Editor
+.vscode/
+*.swp

@@ -27,10 +27,10 @@ from cv_bridge import CvBridge
 
 # ── Board constants ──────────────────────────────────────────────────────────
 
-ROWS, COLS   = 3, 3          # 3x3 boxes → 4x4 dots
+ROWS, COLS   = 4, 4          # 4x4 boxes → 5x5 dots
 BOARD_PX     = 400           # warped board image size in pixels
 MARGIN       = 50            # pixels from edge to first dot
-SPACING      = (BOARD_PX - 2 * MARGIN) // COLS   # pixels between dots
+SPACING      = (BOARD_PX - 2 * MARGIN) // COLS   # 75px for 5x5 dots
 
 # ── Geometry helpers ─────────────────────────────────────────────────────────
 
@@ -127,6 +127,7 @@ class BoardDetectorNode:
         rospy.Subscriber("/cam/color/image_raw", Image, self._on_image)
         rospy.Subscriber("/robot_done", String, self._on_robot_done)
 
+        self._baseline_done = False   # True after first stable scan
         rospy.loginfo("Board detector ready. Watching for human moves.")
 
     def _warp(self, frame):
@@ -139,19 +140,33 @@ class BoardDetectorNode:
         rospy.loginfo("Robot done — watching for human move.")
 
     def _on_image(self, msg):
-        if not self.active:
-            return
-
         try:
             frame = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
         except Exception as e:
             rospy.logerr("cv_bridge error: %s", e)
             return
 
-        warped      = self._warp(frame)
-        gray        = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
-        current     = detect_drawn_edges(gray, self.threshold)
-        new_edges   = current - self.known_edges
+        warped  = self._warp(frame)
+        gray    = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
+        current = detect_drawn_edges(gray, self.threshold)
+
+        # On first frame, record whatever is on the board as the baseline.
+        if not self._baseline_done:
+            self.known_edges = current
+            self._baseline_done = True
+            rospy.loginfo("Baseline set: %d edges already on board.", len(current))
+
+        if not self.active:
+            if self.debug:
+                vis = draw_debug(warped, current)
+                cv2.imshow("Board Detector", vis)
+                cv2.waitKey(1)
+            return
+
+        new_edges = current - self.known_edges
+
+        if self.debug:
+            rospy.loginfo_throttle(2.0, "Detected %d edges, %d new", len(current), len(new_edges))
 
         if len(new_edges) == 1:
             edge = list(new_edges)[0]
@@ -161,6 +176,10 @@ class BoardDetectorNode:
             rospy.loginfo("Human move detected: %s", msg_data)
             self.known_edges = current
             self.active = False        # pause until robot finishes
+        elif len(new_edges) > 1:
+            # Multiple edges appeared at once — update baseline to avoid spam
+            rospy.logwarn("Multiple new edges (%d) — updating baseline, not publishing.", len(new_edges))
+            self.known_edges = current
 
         if self.debug:
             new_edge = list(new_edges)[0] if len(new_edges) == 1 else None

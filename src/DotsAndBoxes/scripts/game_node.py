@@ -19,7 +19,7 @@ from std_msgs.msg import String
 
 # ── Board constants ──────────────────────────────────────────────────────────
 
-ROWS, COLS = 3, 3   # 3x3 grid of boxes → 4x4 dots
+ROWS, COLS = 4, 4   # 4x4 grid of boxes → 5x5 dots
 
 def _make_all_edges():
     edges = []

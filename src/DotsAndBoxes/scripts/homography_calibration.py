@@ -160,9 +160,15 @@ def main():
             print("Points reset. Start clicking again.")
 
         elif key == ord('s') and len(clicked_points) == 4:
-            # Compute homography
+            # Compute homography: camera pixels → 400x400 output pixels
             pixel_points = np.array(clicked_points, dtype=np.float32)
-            H, mask = cv2.findHomography(pixel_points, WORLD_POINTS)
+            output_corners = np.float32([
+                [50,  50 ],   # top-left dot
+                [350, 50 ],   # top-right dot
+                [350, 350],   # bottom-right dot
+                [50,  350],   # bottom-left dot
+            ])
+            H = cv2.getPerspectiveTransform(pixel_points, output_corners)
 
             if H is None:
                 print("ERROR: Could not compute homography. Try clicking again.")
@@ -170,15 +176,6 @@ def main():
 
             print("\nHomography matrix computed:")
             print(H)
-
-            # Verify by projecting clicked points back
-            print("\nVerification (pixel -> world):")
-            for i, pt in enumerate(clicked_points):
-                p = np.array([[[pt[0], pt[1]]]], dtype=np.float32)
-                result = cv2.perspectiveTransform(p, H)
-                rx, ry = result[0][0]
-                ex, ey = WORLD_POINTS[i]
-                print(f"  {labels[i]}: got ({rx:.3f}, {ry:.3f}), expected ({ex:.3f}, {ey:.3f})")
 
             # Save to YAML
             output_dir = os.path.dirname(OUTPUT_PATH)
