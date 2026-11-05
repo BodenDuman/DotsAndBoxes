@@ -1,1 +1,0 @@
-/home/project26-group6/ros/devel/.private/catkin_tools_prebuild/env.sh
