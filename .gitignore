@@ -2,5 +2,10 @@ build/
 devel/
 logs/
 .catkin_tools/
+.vscode/
 *.pyc
+*.pyo
 __pycache__/
+frame*.jpg
+*.npy
+*.swp
