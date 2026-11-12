@@ -1,0 +1,205 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="cu_ur5e">
+    <xacro:include filename="$(find cu_ur5e_description)/urdf/mounted_arm.urdf.xacro" />
+    <xacro:include filename="$(find cu_ur5e_description)/urdf/table.urdf.xacro" />
+
+    <material name="wall_gray">
+        <color rgba="0.7 0.7 0.7 1"/>
+    </material>
+
+    <material name="clearance_volume">
+        <color rgba="0.6 0.4 0.2 0.2"/>
+    </material>
+
+    <link name="wall_indent">
+        <visual>
+            <geometry>
+                <box size="0.18 0.74 2.0"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <material name="wall_gray"/>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.18 0.74 2.0"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </collision>
+    </link>
+    <joint name="base_to_wall_indent" type="fixed">
+        <parent link="base"/>
+        <child link="wall_indent"/>
+        <origin xyz="-0.60 0.1 1" rpy="0 0 0"/>
+    </joint>
+
+    <link name="wall">
+        <visual>
+            <geometry>
+                <box size="0.1 4.5 2.0"/>
+            </geometry>
+            <origin xyz="-0.235 0 1.0" rpy="0 0 0"/>
+            <material name="wall_gray"/>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.1 4.0 2.0"/>
+            </geometry>
+            <origin xyz="-0.235 0 1.0" rpy="0 0 0"/>
+        </collision>
+    </link>
+    <joint name="base_to_wall" type="fixed">
+        <parent link="base"/>
+        <child link="wall"/>
+        <origin xyz="-.5 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <xacro:table length="0.8" width="1.6" height="0.72" name="table" />
+
+    <joint name="base_to_table" type="fixed">
+        <parent link="base"/>
+        <child link="table"/>
+        <origin xyz="${0.4+0.14} -0.11 0.0" rpy="0 0 0"/>
+    </joint>
+
+    <xacro:table length="0.8" width="1.6" height="0.72" name="operator_table" />
+    <joint name="base_to_operator_table" type="fixed">
+        <parent link="base"/>
+        <child link="operator_table"/>
+        <origin xyz="-0.29 ${-0.8-.75} 0.0" rpy="0 0 0"/>
+    </joint>
+
+    <xacro:property name="clearance_height" value="0.55"/>
+    <link name="operator_clearance">
+        <visual>
+            <geometry>
+                <box size="0.8 1.6 ${clearance_height}"/>
+            </geometry>
+            <origin xyz="0 0 0.0" rpy="0 0 0"/>
+            <material name="clearance_volume"/>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.8 1.6 ${clearance_height}"/>
+            </geometry>
+            <origin xyz="0 0 0.0" rpy="0 0 0"/>
+        </collision>
+    </link>
+    <joint name="operator_clearance_joint" type="fixed">
+        <parent link="operator_table_top"/>
+        <child link="operator_clearance"/>
+        <origin xyz="0.0 0.0 ${clearance_height/2}" rpy="0 0 0"/>
+    </joint>
+
+    <xacro:table length="0.8" width="0.8" height="0.72" name="side_table" />
+    <joint name="base_to_side_table" type="fixed">
+        <parent link="base"/>
+        <child link="side_table"/>
+        <origin xyz="-0.29 ${0.4+0.45} 0.0" rpy="0 0 0"/>
+    </joint>
+
+    <xacro:property name="tripod_height" value="1.45"/>
+    <link name="tripod">
+        <visual>
+            <geometry>
+                <cylinder length="${tripod_height}" radius="0.15"/>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+            </geometry>
+            <material name="mount_gray" />
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="${tripod_height}" radius="0.15"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </collision>
+    </link>
+
+    <joint name="base_to_tripod" type="fixed">
+        <parent link="base"/>
+        <child link="tripod"/>
+        <origin xyz="-0.4 -0.5 ${tripod_height/2}" rpy="0 0 0"/>
+    </joint>
+
+    <!-- ===================================================================== -->
+    <!-- CAMERA RIG (boom-mounted RealSense over the board)                    -->
+    <!-- All values are estimates from tape measurements — tune in RViz.       -->
+    <!--   +X = forward toward board,  +Y = left,  +Z = up (robot base frame)  -->
+    <!-- ===================================================================== -->
+
+    <xacro:property name="cam_head_x"  value="0.54"/>   <!-- middle of table length (depth) -->
+    <xacro:property name="cam_head_y"  value="-0.26"/>  <!-- 65cm in from table's right edge -->
+    <xacro:property name="cam_head_z"  value="1.60"/>   <!-- 160 cm from ground -->
+
+    <xacro:property name="cam_stand_y" value="-1.31"/>  <!-- pole: 40cm right of table edge -->
+    <xacro:property name="cam_stand_h" value="1.70"/>   <!-- pole height -->
+
+    <material name="camera_black">
+        <color rgba="0.1 0.1 0.1 1"/>
+    </material>
+
+    <!-- Vertical stand pole -->
+    <link name="cam_pole">
+        <visual>
+            <geometry>
+                <cylinder length="${cam_stand_h}" radius="0.02"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <material name="camera_black"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="${cam_stand_h}" radius="0.03"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </collision>
+    </link>
+    <joint name="base_to_cam_pole" type="fixed">
+        <parent link="base"/>
+        <child link="cam_pole"/>
+        <origin xyz="${cam_head_x} ${cam_stand_y} ${cam_stand_h/2}" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Horizontal boom arm reaching from pole to the camera head -->
+    <link name="cam_boom">
+        <visual>
+            <geometry>
+                <box size="0.03 ${cam_head_y - cam_stand_y} 0.03"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <material name="camera_black"/>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.04 ${cam_head_y - cam_stand_y} 0.04"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </collision>
+    </link>
+    <joint name="base_to_cam_boom" type="fixed">
+        <parent link="base"/>
+        <child link="cam_boom"/>
+        <origin xyz="${cam_head_x} ${(cam_head_y + cam_stand_y)/2} ${cam_head_z}" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Camera head (RealSense body) pointing down at the board -->
+    <link name="camera_link">
+        <visual>
+            <geometry>
+                <box size="0.09 0.025 0.06"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <material name="camera_black"/>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.11 0.04 0.08"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </collision>
+    </link>
+    <joint name="base_to_camera" type="fixed">
+        <parent link="base"/>
+        <child link="camera_link"/>
+        <origin xyz="${cam_head_x} ${cam_head_y} ${cam_head_z}" rpy="0 0 0"/>
+    </joint>
+</robot>
